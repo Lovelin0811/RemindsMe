@@ -1,0 +1,51 @@
+<view class="page-wrap">
+  <block wx:if="{{hasReminder}}">
+    <!-- 主卡片 - Liquid Glass -->
+    <view class="next-card">
+      <!-- 类型标签 -->
+      <view class="next-tag tag-pill tag-{{next.type}}">
+        {{next.typeLabel}}
+      </view>
+      <view class="next-subtitle" wx:if="{{next.intervalLabel}}">
+        <text class="next-sub-text">{{next.intervalLabel}}</text>
+      </view>
+
+      <!-- 标题 -->
+      <text class="next-title">{{next.title}}</text>
+
+      <!-- 备注 -->
+      <text class="next-note" wx:if="{{next.note}}">{{next.note}}</text>
+
+      <!-- 时间 -->
+      <view class="next-time-row">
+        <view class="next-time-block">
+          <text class="next-date">{{next.date}}</text>
+          <text class="next-hour">{{next.time}}</text>
+        </view>
+      </view>
+
+      <!-- 倒计时 - 大字 -->
+      <view class="countdown-ring" wx:if="{{countdown}}">
+        <text class="countdown-num">{{countdown}}</text>
+      </view>
+    </view>
+
+    <!-- 操作按钮 -->
+    <view class="action-row">
+      <button class="btn-pill action-btn action-done" bindtap="markDone">完成</button>
+      <button class="btn-pill-secondary action-btn action-del" bindtap="deleteReminder">删除</button>
+    </view>
+  </block>
+
+  <!-- 空状态 -->
+  <view class="empty-state" wx:else>
+    <view class="empty-glass">
+      <view class="empty-bell">
+        <text class="bell-icon">🔔</text>
+      </view>
+      <text class="empty-title">暂无待办提醒</text>
+      <text class="empty-desc">点击创建，开启你的提醒</text>
+      <button class="btn-pill empty-btn" bindtap="goAdd">创建提醒</button>
+    </view>
+  </view>
+</view>

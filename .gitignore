@@ -1,0 +1,16 @@
+# 微信小程序私有配置
+project.private.config.json
+
+# WorkBuddy 内部数据
+.workbuddy/
+
+# macOS
+.DS_Store
+
+# Node
+node_modules/
+
+# IDE
+.idea/
+.vscode/
+*.swp

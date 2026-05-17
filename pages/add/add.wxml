@@ -25,7 +25,7 @@
   <!-- ====== 延时选项 ====== -->
   <block wx:if="{{type === 'delay'}}">
     <view class="option-grid">
-      <view class="option-chip {{delayIndex === idx ? 'selected' : ''}}" wx:for="{{delayOptions}}" wx:key="value" data-idx="{{idx}}" bindtap="onDelayTap">
+      <view class="option-chip {{delayIndex === index ? 'selected' : ''}}" wx:for="{{delayOptions}}" wx:key="value" data-idx="{{index}}" bindtap="onDelayTap">
         <text class="chip-text">{{item.label}}</text>
       </view>
     </view>

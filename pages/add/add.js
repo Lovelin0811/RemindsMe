@@ -7,7 +7,7 @@ const REMINDER_TYPES = [
 
 // 订阅消息模板ID
 // TODO: 在微信公众平台 → 订阅消息 → 选用模板，获取模板ID后替换
-const SUBSCRIBE_TEMPLATE_ID = 'your_template_id_here'
+const SUBSCRIBE_TEMPLATE_ID = 'C9lPRw7nKW4cgmaJTINBRXAEpRdhimwz9vGauR-yDWI'
 
 const api = require('../../utils/api')
 

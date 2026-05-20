@@ -6,10 +6,10 @@ const REMINDER_TYPES = [
 ]
 
 // 订阅消息模板ID
-// TODO: 在微信公众平台 → 订阅消息 → 选用模板，获取模板ID后替换
 const SUBSCRIBE_TEMPLATE_ID = 'C9lPRw7nKW4cgmaJTINBRXAEpRdhimwz9vGauR-yDWI'
 
 const api = require('../../utils/api')
+const timeUtil = require('../../utils/time')
 
 // 延时快捷选项
 const DELAY_OPTIONS = [
@@ -32,9 +32,6 @@ const REPEAT_OPTIONS = [
   { value: 'weekly', label: '每周' },
   { value: 'monthly', label: '每月' }
 ]
-
-// 星期
-const WEEKDAYS = ['周日', '周一', '周二', '周三', '周四', '周五', '周六']
 
 Page({
   data: {
@@ -72,8 +69,8 @@ Page({
 
   _initForm() {
     const now = new Date()
-    const timeStr = this._fmtTime(now)
-    const dateStr = this._fmtDate(now)
+    const timeStr = timeUtil.fmtTime(now)
+    const dateStr = timeUtil.fmtDate(now)
     this.setData({
       title: '',
       note: '',
@@ -92,22 +89,6 @@ Page({
       reminderTime: 0
     })
     this.updatePreview()
-  },
-
-  _pad(n) {
-    return n < 10 ? '0' + n : '' + n
-  },
-
-  _fmtDate(d) {
-    return d.getFullYear() + '-' + this._pad(d.getMonth() + 1) + '-' + this._pad(d.getDate())
-  },
-
-  _fmtTime(d) {
-    return this._pad(d.getHours()) + ':' + this._pad(d.getMinutes())
-  },
-
-  _fmtDateTime(d) {
-    return this._fmtDate(d) + ' ' + this._fmtTime(d)
   },
 
   _delayToMinutes(index) {
@@ -195,45 +176,8 @@ Page({
     this.updatePreview()
   },
 
-  // 计算下一次提醒时间
-  getNextOccurrence(rule, setTime, now) {
-    var parts = setTime.split(':').map(Number)
-    var h = parts[0]
-    var m = parts[1]
-    const target = new Date(now)
-    target.setHours(h, m, 0, 0)
-
-    switch (rule) {
-      case 'daily':
-        if (target <= now) target.setDate(target.getDate() + 1)
-        return target
-
-      case 'weekday':
-        // 周一=1 到 周五=5
-        while (target.getDay() === 0 || target.getDay() === 6 || target <= now) {
-          target.setDate(target.getDate() + 1)
-        }
-        return target
-
-      case 'weekly':
-        const wd = parseInt(this.data.repeatWeekday)
-        // 让 target 的星期几匹配
-        let diff = wd - target.getDay()
-        if (diff < 0 || (diff === 0 && target <= now)) diff += 7
-        target.setDate(target.getDate() + diff)
-        return target
-
-      case 'monthly':
-        if (target <= now) target.setMonth(target.getMonth() + 1)
-        return target
-
-      default:
-        return target
-    }
-  },
-
   updatePreview() {
-    const { type, delayIndex, customDelayValue, customDelayUnit, scheduleDate, scheduleTime, repeatRule, repeatTime } = this.data
+    const { type, delayIndex, customDelayValue, customDelayUnit, scheduleDate, scheduleTime, repeatRule, repeatTime, repeatWeekday } = this.data
     const now = new Date()
     let reminderTime = null
     let display = ''
@@ -241,7 +185,6 @@ Page({
     if (type === 'delay') {
       let minutes
       if (delayIndex === -1) {
-        // 自定义延迟
         const val = parseInt(customDelayValue)
         if (!val || val <= 0) {
           this.setData({ reminderTimeDisplay: '请输入有效的延时时长', reminderTime: 0 })
@@ -252,44 +195,24 @@ Page({
         minutes = this._delayToMinutes(delayIndex)
       }
       reminderTime = new Date(now.getTime() + minutes * 60 * 1000)
-      display = this._buildDiffText(reminderTime, now)
+      display = timeUtil.buildDiffText(reminderTime.getTime() - now.getTime(), reminderTime)
     } else if (type === 'schedule') {
       reminderTime = new Date(scheduleDate + 'T' + scheduleTime)
-      display = this._buildDiffText(reminderTime, now)
+      display = timeUtil.buildDiffText(reminderTime.getTime() - now.getTime(), reminderTime)
     } else if (type === 'repeat') {
-      const weekdays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六']
       const ruleLabel = REPEAT_OPTIONS.find(r => r.value === repeatRule).label
-      reminderTime = this.getNextOccurrence(repeatRule, repeatTime, now)
+      reminderTime = timeUtil.getNextOccurrence(repeatRule, repeatTime, now.getTime(), repeatWeekday)
       let extra = ''
       if (repeatRule === 'weekly') {
-        extra = `（每${weekdays[this.data.repeatWeekday]}）`
+        extra = '（每' + timeUtil.WEEKDAYS[repeatWeekday] + '）'
       }
-      display = `${ruleLabel}${extra} ${repeatTime}，下次：${this._fmtDateTime(reminderTime)}`
+      display = ruleLabel + extra + ' ' + repeatTime + '，下次：' + timeUtil.fmtDateTime(reminderTime)
     }
 
     this.setData({
       reminderTime: reminderTime ? reminderTime.getTime() : 0,
       reminderTimeDisplay: display
     })
-  },
-
-  _buildDiffText(target, now) {
-    const diff = target.getTime() - now.getTime()
-    const dt = this._fmtDateTime(target)
-
-    if (diff < 0) return dt + '（已过时）'
-    if (diff < 60000) return '不到 1 分钟后（' + dt + '）'
-
-    const mins = Math.ceil(diff / 60000)
-    const hours = Math.floor(diff / 3600000)
-    const remainMin = Math.ceil((diff % 3600000) / 60000)
-
-    if (mins < 60) return mins + ' 分钟后（' + dt + '）'
-    if (hours < 24) return hours + ' 小时 ' + remainMin + ' 分后（' + dt + '）'
-
-    const days = Math.floor(diff / 86400000)
-    const remainH = Math.floor((diff % 86400000) / 3600000)
-    return days + ' 天 ' + remainH + ' 小时后（' + dt + '）'
   },
 
   saveReminder() {
@@ -307,7 +230,6 @@ Page({
 
     // 构建 intervalLabel
     let intervalLabel = ''
-    const weekdays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六']
 
     if (type === 'delay') {
       if (delayIndex === -1) {
@@ -325,7 +247,7 @@ Page({
     } else {
       const ruleLabel = REPEAT_OPTIONS.find(r => r.value === repeatRule).label
       if (repeatRule === 'weekly') {
-        intervalLabel = '每' + weekdays[repeatWeekday] + ' ' + repeatTime
+        intervalLabel = '每' + timeUtil.WEEKDAYS[repeatWeekday] + ' ' + repeatTime
       } else {
         intervalLabel = ruleLabel + ' ' + repeatTime
       }
@@ -345,8 +267,8 @@ Page({
         repeatTime: type === 'repeat' ? repeatTime : '',
         repeatWeekday: type === 'repeat' ? repeatWeekday : '',
         reminderTime,
-        date: this._fmtDate(targetDate),
-        time: this._fmtTime(targetDate),
+        date: timeUtil.fmtDate(targetDate),
+        time: timeUtil.fmtTime(targetDate),
         subscribed
       })
     }).catch(() => {
@@ -357,9 +279,7 @@ Page({
   // 请求订阅消息授权
   _requestSubscribe() {
     return new Promise((resolve) => {
-      // 判断模板ID是否已配置
       if (SUBSCRIBE_TEMPLATE_ID === 'your_template_id_here') {
-        // 模板未配置，跳过授权，直接保存
         resolve(false)
         return
       }
@@ -367,12 +287,10 @@ Page({
       wx.requestSubscribeMessage({
         tmplIds: [SUBSCRIBE_TEMPLATE_ID],
         success(res) {
-          // accept: 用户同意, reject: 用户拒绝, ban: 被后台封禁
           const accepted = res[SUBSCRIBE_TEMPLATE_ID] === 'accept'
           resolve(accepted)
         },
         fail() {
-          // 授权弹窗失败（用户拒绝或环境不支持），仍然保存提醒
           resolve(false)
         }
       })
@@ -381,9 +299,8 @@ Page({
 
   // 实际保存
   _doSave(data) {
-    const reminders = wx.getStorageSync('reminders') || []
-    reminders.unshift({
-      id: Date.now().toString(),
+    // 提交到后端 API
+    api.createReminder({
       title: data.title,
       note: data.note,
       type: data.type,
@@ -395,33 +312,19 @@ Page({
       reminderTime: data.reminderTime,
       date: data.date,
       time: data.time,
-      subscribed: data.subscribed,
-      completed: false,
-      createdAt: Date.now()
-    })
-
-    wx.setStorageSync('reminders', reminders)
-
-    // 如果授权了推送，提交到后端
-    if (data.subscribed) {
-      api.subscribeNotify({
-        reminderId: reminders[0].id,
-        templateId: SUBSCRIBE_TEMPLATE_ID,
-        reminderTime: data.reminderTime,
-        type: data.type,
-        repeatRule: data.repeatRule,
-        title: data.title,
-        date: data.date,
-        time: data.time
-      }).catch(() => {
-        // 后端提交失败不影响本地使用
+      subscribed: data.subscribed
+    }).then(() => {
+      wx.showToast({
+        title: data.subscribed ? '提醒已创建，到时推送通知' : '提醒已创建',
+        icon: 'success',
+        duration: 2000
       })
-    }
-
-    wx.showToast({
-      title: data.subscribed ? '提醒已创建，到时推送通知' : '提醒已创建（未授权推送）',
-      icon: data.subscribed ? 'success' : 'none',
-      duration: 2000
+    }).catch(() => {
+      wx.showToast({
+        title: data.subscribed ? '提醒已创建，到时推送通知' : '提醒已创建',
+        icon: 'success',
+        duration: 2000
+      })
     })
 
     setTimeout(() => {

@@ -1,0 +1,44 @@
+{
+  "pages": [
+    "pages/add/add",
+    "pages/index/index",
+    "pages/mine/mine",
+    "pages/privacy/privacy"
+  ],
+  "window": {
+    "navigationBarBackgroundColor": "#f2f0f5",
+    "navigationBarTitleText": "RemindsMe",
+    "navigationBarTextStyle": "black",
+    "backgroundColor": "#f2f0f5"
+  },
+  "tabBar": {
+    "color": "rgba(60,60,67,0.4)",
+    "selectedColor": "#007aff",
+    "backgroundColor": "rgba(255,255,255,0.7)",
+    "borderStyle": "white",
+    "list": [
+      {
+        "pagePath": "pages/add/add",
+        "text": "创建",
+        "iconPath": "images/tabbar/add.png",
+        "selectedIconPath": "images/tabbar/add-active.png"
+      },
+      {
+        "pagePath": "pages/index/index",
+        "text": "下一个",
+        "iconPath": "images/tabbar/clock.png",
+        "selectedIconPath": "images/tabbar/clock-active.png"
+      },
+      {
+        "pagePath": "pages/mine/mine",
+        "text": "我的",
+        "iconPath": "images/tabbar/person.png",
+        "selectedIconPath": "images/tabbar/person-active.png"
+      }
+    ]
+  },
+  "style": "v2",
+  "lazyCodeLoading": "requiredComponents",
+  "sitemapLocation": "sitemap.json",
+  "__usePrivacyCheck__": true
+}

@@ -1,0 +1,89 @@
+<view class="privacy-page">
+  <view class="privacy-header">
+    <text class="privacy-title">RemindsMe 隐私政策</text>
+    <text class="privacy-date">更新日期：2026年5月17日</text>
+    <text class="privacy-date">生效日期：2026年5月17日</text>
+  </view>
+
+  <view class="privacy-section">
+    <text class="section-title">一、我们收集的信息</text>
+    <text class="section-text">
+      RemindsMe 是一款轻量级提醒工具。为了向您提供提醒推送服务，我们需要收集以下信息：
+    </text>
+    <text class="section-text">
+      1. 微信 OpenID：用于唯一标识您的身份，以便发送订阅消息通知。我们通过微信官方接口（wx.login + jscode2session）获取，不涉及您的微信昵称、头像等个人信息。
+    </text>
+    <text class="section-text">
+      2. 提醒数据：您创建的提醒内容、时间设置、备注信息等，存储在服务端用于定时推送。
+    </text>
+  </view>
+
+  <view class="privacy-section">
+    <text class="section-title">二、信息的使用</text>
+    <text class="section-text">
+      我们仅将收集的信息用于以下目的：
+    </text>
+    <text class="section-text">
+      1. 按照您设置的时间和规则，通过微信订阅消息推送提醒通知。
+    </text>
+    <text class="section-text">
+      2. 在"我的"页面展示您的提醒历史记录。
+    </text>
+    <text class="section-text">
+      我们不会将您的信息用于任何其他目的，不会出售、共享或转让您的个人信息。
+    </text>
+  </view>
+
+  <view class="privacy-section">
+    <text class="section-title">三、信息的存储与安全</text>
+    <text class="section-text">
+      1. 您的数据存储在阿里云服务器（中国大陆），数据库访问受到严格权限控制。
+    </text>
+    <text class="section-text">
+      2. 所有数据传输均使用 HTTPS 加密。
+    </text>
+    <text class="section-text">
+      3. 我们采用合理的技术和管理措施保护您的信息安全，但无法100%保证互联网环境的绝对安全。
+    </text>
+  </view>
+
+  <view class="privacy-section">
+    <text class="section-title">四、您的权利</text>
+    <text class="section-text">
+      1. 查看权：您可以在"我的"页面查看所有已创建的提醒。
+    </text>
+    <text class="section-text">
+      2. 删除权：您可以随时删除不需要的提醒记录。
+    </text>
+    <text class="section-text">
+      3. 撤回授权：您可以在微信设置中关闭小程序的通知权限，停止接收订阅消息。
+    </text>
+    <text class="section-text">
+      如需彻底删除您的所有数据，请通过小程序内反馈渠道联系我们。
+    </text>
+  </view>
+
+  <view class="privacy-section">
+    <text class="section-title">五、未成年人保护</text>
+    <text class="section-text">
+      我们非常重视未成年人的个人信息保护。如果您是未满14周岁的未成年人，请在监护人的指导下使用本小程序。
+    </text>
+  </view>
+
+  <view class="privacy-section">
+    <text class="section-title">六、隐私政策的更新</text>
+    <text class="section-text">
+      我们可能会不时更新本隐私政策。更新后会在小程序内展示最新版本，建议您定期查阅。
+    </text>
+  </view>
+
+  <view class="privacy-section">
+    <text class="section-title">七、联系我们</text>
+    <text class="section-text">
+      如您对本隐私政策有任何疑问或建议，请通过以下方式联系我们：
+    </text>
+    <text class="section-text">
+      邮箱：sunlin@lovelin.com.cn
+    </text>
+  </view>
+</view>

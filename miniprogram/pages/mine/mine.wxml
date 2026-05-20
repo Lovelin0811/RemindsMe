@@ -1,0 +1,107 @@
+<wxs module="utils">
+var pad = function(n) {
+  return n < 10 ? '0' + n : '' + n
+}
+
+module.exports = {
+  formatTime: function(timestamp) {
+    if (!timestamp) return ''
+    var d = getDate(timestamp)
+    var now = getDate()
+    var timeStr = pad(d.getHours()) + ':' + pad(d.getMinutes())
+
+    if (d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth() && d.getDate() === now.getDate()) {
+      return '今天 ' + timeStr
+    }
+
+    var tomorrow = getDate(now.getTime() + 86400000)
+    if (d.getFullYear() === tomorrow.getFullYear() && d.getMonth() === tomorrow.getMonth() && d.getDate() === tomorrow.getDate()) {
+      return '明天 ' + timeStr
+    }
+
+    return pad(d.getMonth() + 1) + '-' + pad(d.getDate()) + ' ' + timeStr
+  }
+}
+</wxs>
+
+<view class="page-wrap">
+  <!-- 统计卡片 -->
+  <view class="stats-glass">
+    <view class="stat-item">
+      <text class="stat-num">{{totalCount}}</text>
+      <text class="stat-label">全部</text>
+    </view>
+    <view class="stat-divider"></view>
+    <view class="stat-item">
+      <text class="stat-num stat-pending">{{pendingCount}}</text>
+      <text class="stat-label">待办</text>
+    </view>
+    <view class="stat-divider"></view>
+    <view class="stat-item">
+      <text class="stat-num stat-done">{{completedCount}}</text>
+      <text class="stat-label">已完成</text>
+    </view>
+  </view>
+
+  <!-- 筛选 pill -->
+  <view class="filter-row">
+    <view class="filter-chip {{activeTab === 'all' ? 'active' : ''}}" bindtap="switchTab" data-tab="all">全部</view>
+    <view class="filter-chip {{activeTab === 'pending' ? 'active' : ''}}" bindtap="switchTab" data-tab="pending">待办</view>
+    <view class="filter-chip {{activeTab === 'completed' ? 'active' : ''}}" bindtap="switchTab" data-tab="completed">已完成</view>
+  </view>
+
+  <!-- 列表：movable-view 左滑删除 -->
+  <view class="reminder-list">
+    <block wx:for="{{filteredReminders}}" wx:key="id">
+      <movable-area class="swipe-area" style="width:100%;height:120rpx;">
+        <movable-view
+          class="swipe-view"
+          style="width:calc(100% + 80px);height:120rpx;"
+          direction="horizontal"
+          x="{{item._x}}"
+          animation="{{true}}"
+          disabled="{{item._opened}}"
+          inertia="{{false}}"
+          out-of-bounds="{{false}}"
+          damping="{{50}}"
+          bindchange="onSwipeChange"
+          data-id="{{item.id}}"
+          data-index="{{index}}"
+        >
+          <view class="swipe-inner">
+            <view class="reminder-card {{item.completed ? 'completed' : ''}}" bindtap="onCardTap" data-id="{{item.id}}">
+              <view class="card-left" catchtap="toggleComplete" data-id="{{item.id}}">
+                <view class="check-circle {{item.completed ? 'checked' : ''}}">
+                  <text wx:if="{{item.completed}}">✓</text>
+                </view>
+                <view class="card-body">
+                  <text class="card-title {{item.completed ? 'done' : ''}}">{{item.title}}</text>
+                  <view class="card-meta">
+                    <text class="card-time">{{utils.formatTime(item.reminderTime)}}</text>
+                    <text class="meta-dot">·</text>
+                    <text class="card-interval">{{item.intervalLabel}}</text>
+                  </view>
+                </view>
+                <view class="card-tag tag-pill tag-{{item.completed ? 'done' : item.type}}">{{item.completed ? '已完成' : item.typeLabel}}</view>
+              </view>
+            </view>
+            <view class="swipe-del-btn" bindtap="deleteReminder" data-id="{{item.id}}">
+              <text>删除</text>
+            </view>
+          </view>
+        </movable-view>
+      </movable-area>
+    </block>
+
+    <!-- 空状态 -->
+    <view class="list-empty" wx:if="{{filteredReminders.length === 0}}">
+      <text class="list-empty-text">暂无提醒</text>
+      <text class="list-empty-action" bindtap="goAdd">创建一个</text>
+    </view>
+  </view>
+
+  <!-- 底部隐私政策 -->
+  <view class="privacy-link" bindtap="goPrivacy">
+    <text class="privacy-link-text">隐私政策</text>
+  </view>
+</view>

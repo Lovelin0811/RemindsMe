@@ -1,3 +1,6 @@
+const api = require('../../utils/api')
+const timeUtil = require('../../utils/time')
+
 Page({
   data: {
     reminders: []
@@ -25,62 +28,62 @@ Page({
     }
   },
 
-  // 加载所有未完成提醒，按时间排序
+  // 从 API 加载提醒列表
   loadReminders() {
-    const reminders = wx.getStorageSync('reminders') || []
-    const now = Date.now()
-    let changed = false
+    api.getReminders()
+      .then((res) => {
+        const raw = res.reminders || []
+        const now = Date.now()
 
-    const pending = reminders
-      .filter(r => {
-        if (r.completed) return false
+        const pending = raw
+          .filter(r => {
+            if (r.status === 'completed' || r.status === 'pushed') return false
+            // 延时/指定时间：到时间则不展示
+            if ((r.type === 'delay' || r.type === 'schedule')) {
+              const t = parseInt(r.reminder_time || r.reminderTime) || 0
+              if (t <= now) return false
+            }
+            return true
+          })
+          .map(r => {
+            const reminderTime = parseInt(r.reminder_time || r.reminderTime) || 0
 
-        // 延时/指定时间：到时间后标记为已完成
-        if ((r.type === 'delay' || r.type === 'schedule') && r.reminderTime <= now) {
-          changed = true
-          return false
-        }
-        return true
+            // 定期提醒：如果已过期，计算下一次
+            if (r.type === 'repeat' && reminderTime <= now) {
+              const repeatTime = r.repeat_time || r.repeatTime || ''
+              const repeatWeekday = r.repeat_weekday != null ? r.repeat_weekday : (r.repeatWeekday || 0)
+              const next = timeUtil.getNextOccurrence(r.repeat_rule || r.repeatRule || 'daily', repeatTime, now, repeatWeekday)
+              r._displayTime = next.getTime()
+            } else {
+              r._displayTime = reminderTime
+            }
+
+            // 计算倒计时
+            const diff = r._displayTime - now
+            r._countdown = diff <= 0 ? '' : timeUtil.formatCountdown(diff)
+            r._expired = diff <= 0
+
+            return {
+              id: r.reminder_id || r.id || '',
+              title: r.title || '',
+              note: r.note || '',
+              type: r.type || 'delay',
+              typeLabel: r.type_label || r.typeLabel || '延时提醒',
+              intervalLabel: r.interval_label || r.intervalLabel || '',
+              repeatRule: r.repeat_rule || r.repeatRule || '',
+              repeatTime: r.repeat_time || r.repeatTime || '',
+              reminderTime: r._displayTime,
+              countdown: r._countdown,
+              expired: r._expired
+            }
+          })
+          .sort((a, b) => a.reminderTime - b.reminderTime)
+
+        this.setData({ reminders: pending })
       })
-      .map(r => {
-        // 定期提醒：到时间后计算下一次
-        if (r.type === 'repeat' && r.reminderTime <= now) {
-          const next = this.getNextOccurrence(r.repeatRule, r.repeatTime, now, r.repeatWeekday)
-          r.reminderTime = next.getTime()
-          r.date = this._fmtDate(next)
-          r.time = this._fmtTime(next)
-          changed = true
-        }
-        return r
+      .catch(() => {
+        // 静默失败，保持上一次数据
       })
-      .sort((a, b) => a.reminderTime - b.reminderTime)
-
-    // 为每条计算倒计时
-    pending.forEach(r => {
-      const diff = r.reminderTime - now
-      r.expired = diff <= 0
-      r.countdown = diff <= 0 ? '' : this._formatCountdown(diff)
-    })
-
-    this.setData({ reminders: pending })
-
-    if (changed) {
-      // 标记到期延时/指定时间为已完成，定期更新时间
-      const all = wx.getStorageSync('reminders') || []
-      all.forEach(r => {
-        if (r.completed) return
-        if ((r.type === 'delay' || r.type === 'schedule') && r.reminderTime <= now) {
-          r.completed = true
-        }
-        if (r.type === 'repeat' && r.reminderTime <= now) {
-          const next = this.getNextOccurrence(r.repeatRule, r.repeatTime, now)
-          r.reminderTime = next.getTime()
-          r.date = this._fmtDate(next)
-          r.time = this._fmtTime(next)
-        }
-      })
-      wx.setStorageSync('reminders', all)
-    }
   },
 
   startCountdown() {
@@ -89,7 +92,7 @@ Page({
     this.timer = setInterval(() => {
       this.updateCountdowns()
       this.secondCount++
-      // 每 30 秒重新检查到期
+      // 每 30 秒重新从 API 刷新
       if (this.secondCount % 30 === 0) {
         this.loadReminders()
       }
@@ -109,7 +112,7 @@ Page({
           needReload = true
         }
       } else {
-        const cd = this._formatCountdown(diff)
+        const cd = timeUtil.formatCountdown(diff)
         if (cd !== r.countdown) {
           updates['reminders[' + i + '].countdown'] = cd
           updates['reminders[' + i + '].expired'] = false
@@ -124,63 +127,6 @@ Page({
     }
   },
 
-  // 计算定期提醒的下一次时间
-  getNextOccurrence(rule, setTime, now, repeatWeekday) {
-    var parts = setTime.split(':').map(Number)
-    var h = parts[0]
-    var m = parts[1]
-    const target = new Date(now)
-    target.setHours(h, m, 0, 0)
-
-    switch (rule) {
-      case 'daily':
-        if (target <= now) target.setDate(target.getDate() + 1)
-        return target
-      case 'weekday':
-        while (target.getDay() === 0 || target.getDay() === 6 || target <= now) {
-          target.setDate(target.getDate() + 1)
-        }
-        return target
-      case 'weekly': {
-        const wd = parseInt(repeatWeekday || '1')
-        let diff = wd - target.getDay()
-        if (diff < 0 || (diff === 0 && target <= now)) diff += 7
-        target.setDate(target.getDate() + diff)
-        return target
-      }
-      case 'monthly':
-        if (target <= now) target.setMonth(target.getMonth() + 1)
-        return target
-      default:
-        if (target <= now) target.setDate(target.getDate() + 1)
-        return target
-    }
-  },
-
-  _formatCountdown(diff) {
-    const d = Math.floor(diff / 86400000)
-    const h = Math.floor((diff % 86400000) / 3600000)
-    const m = Math.floor((diff % 3600000) / 60000)
-    const s = Math.floor((diff % 60000) / 1000)
-
-    let text = ''
-    if (d > 0) text += d + '天 '
-    text += h + '小时 ' + m + '分 ' + s + '秒'
-    return text
-  },
-
-  _pad(n) {
-    return n < 10 ? '0' + n : '' + n
-  },
-
-  _fmtDate(d) {
-    return d.getFullYear() + '-' + this._pad(d.getMonth() + 1) + '-' + this._pad(d.getDate())
-  },
-
-  _fmtTime(d) {
-    return this._pad(d.getHours()) + ':' + this._pad(d.getMinutes())
-  },
-
   deleteReminder(e) {
     const id = e.currentTarget.dataset.id
     wx.showModal({
@@ -188,11 +134,12 @@ Page({
       content: '确定删除这条提醒？',
       success: (res) => {
         if (res.confirm) {
-          let reminders = wx.getStorageSync('reminders') || []
-          reminders = reminders.filter(r => r.id !== id)
-          wx.setStorageSync('reminders', reminders)
-          wx.showToast({ title: '已删除', icon: 'success' })
-          this.loadReminders()
+          api.deleteReminder(id).then(() => {
+            wx.showToast({ title: '已删除', icon: 'success' })
+            this.loadReminders()
+          }).catch(() => {
+            wx.showToast({ title: '删除失败', icon: 'none' })
+          })
         }
       }
     })

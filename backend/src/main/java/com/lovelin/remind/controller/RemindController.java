@@ -58,8 +58,8 @@ public class RemindController {
      */
     @PostMapping("/complete")
     public ResponseEntity<Map<String, Object>> complete(@RequestBody Map<String, Object> body) {
-        String openid = (String) body.get("openid");
-        String id = (String) body.get("id");
+        String openid = toString(body.get("openid"));
+        String id = toString(body.get("id"));
         if (openid == null || openid.isEmpty() || id == null || id.isEmpty()) {
             return ResponseEntity.badRequest().body(Map.of("success", false, "message", "参数不完整"));
         }
@@ -76,8 +76,8 @@ public class RemindController {
      */
     @PostMapping("/delete")
     public ResponseEntity<Map<String, Object>> delete(@RequestBody Map<String, Object> body) {
-        String openid = (String) body.get("openid");
-        String id = (String) body.get("id");
+        String openid = toString(body.get("openid"));
+        String id = toString(body.get("id"));
         if (openid == null || openid.isEmpty() || id == null || id.isEmpty()) {
             return ResponseEntity.badRequest().body(Map.of("success", false, "message", "参数不完整"));
         }
@@ -113,5 +113,9 @@ public class RemindController {
         } catch (Exception e) {
             return ResponseEntity.ok(Map.of("success", false, "message", e.getMessage()));
         }
+    }
+
+    private String toString(Object val) {
+        return val != null ? String.valueOf(val) : null;
     }
 }

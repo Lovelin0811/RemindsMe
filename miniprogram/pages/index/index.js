@@ -37,12 +37,8 @@ Page({
 
         const pending = raw
           .filter(r => {
-            if (r.status === 'completed' || r.status === 'pushed') return false
-            // 延时/指定时间：到时间则不展示
-            if ((r.type === 'delay' || r.type === 'schedule')) {
-              const t = parseInt(r.reminder_time || r.reminderTime) || 0
-              if (t <= now) return false
-            }
+            if (r.status === 'completed') return false
+            if (r.status === 'pushed') return false
             return true
           })
           .map(r => {
@@ -62,6 +58,7 @@ Page({
             const diff = r._displayTime - now
             r._countdown = diff <= 0 ? '' : timeUtil.formatCountdown(diff)
             r._expired = diff <= 0
+            r._pushFailed = r.status === 'push_failed'
 
             return {
               id: r.reminder_id || r.id || '',
@@ -74,7 +71,8 @@ Page({
               repeatTime: r.repeat_time || r.repeatTime || '',
               reminderTime: r._displayTime,
               countdown: r._countdown,
-              expired: r._expired
+              expired: r._expired,
+              pushFailed: r._pushFailed
             }
           })
           .sort((a, b) => a.reminderTime - b.reminderTime)

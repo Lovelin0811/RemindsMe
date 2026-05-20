@@ -34,9 +34,12 @@ module.exports = {
         <!-- 定期显示规则 -->
         <text class="r-rule" wx:if="{{item.type === 'repeat'}}">{{item.intervalLabel}}</text>
 
-        <!-- 倒计时 / 已到期 -->
+        <!-- 倒计时 / 已到期 / 推送失败 -->
         <view class="r-countdown">
-          <block wx:if="{{item.expired}}">
+          <block wx:if="{{item.pushFailed}}">
+            <text class="r-expired-text">推送失败（无配额）</text>
+          </block>
+          <block wx:elif="{{item.expired}}">
             <text class="r-expired-text">已到提醒时间</text>
           </block>
           <block wx:else>

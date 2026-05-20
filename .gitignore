@@ -14,3 +14,9 @@ node_modules/
 .idea/
 .vscode/
 *.swp
+
+# Java / Maven
+backend/target/
+*.class
+*.jar
+*.lst

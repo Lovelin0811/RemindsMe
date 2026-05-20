@@ -1,7 +1,0 @@
-com/lovelin/remind/RemindApplication.class
-com/lovelin/remind/service/WxSubscribeService.class
-com/lovelin/remind/service/ReminderService.class
-com/lovelin/remind/controller/RemindController.class
-com/lovelin/remind/config/ScheduleConfig.class
-com/lovelin/remind/service/DatabaseInitializer.class
-com/lovelin/remind/service/ReminderScheduler.class

@@ -1,7 +1,0 @@
-/Users/sunlin/Documents/workspace/RemindsMe/backend/src/main/java/com/lovelin/remind/RemindApplication.java
-/Users/sunlin/Documents/workspace/RemindsMe/backend/src/main/java/com/lovelin/remind/config/ScheduleConfig.java
-/Users/sunlin/Documents/workspace/RemindsMe/backend/src/main/java/com/lovelin/remind/controller/RemindController.java
-/Users/sunlin/Documents/workspace/RemindsMe/backend/src/main/java/com/lovelin/remind/service/DatabaseInitializer.java
-/Users/sunlin/Documents/workspace/RemindsMe/backend/src/main/java/com/lovelin/remind/service/ReminderScheduler.java
-/Users/sunlin/Documents/workspace/RemindsMe/backend/src/main/java/com/lovelin/remind/service/ReminderService.java
-/Users/sunlin/Documents/workspace/RemindsMe/backend/src/main/java/com/lovelin/remind/service/WxSubscribeService.java

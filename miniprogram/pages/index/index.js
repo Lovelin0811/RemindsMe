@@ -1,6 +1,3 @@
-// 星期中文
-const WEEKDAYS = ['周日', '周一', '周二', '周三', '周四', '周五', '周六']
-
 Page({
   data: {
     reminders: []
@@ -103,23 +100,27 @@ Page({
     const now = Date.now()
     const reminders = this.data.reminders
     let needReload = false
+    const updates = {}
 
-    reminders.forEach(r => {
+    reminders.forEach((r, i) => {
       const diff = r.reminderTime - now
       if (diff <= 0) {
         if (!r.expired) {
           needReload = true
         }
       } else {
-        r.countdown = this._formatCountdown(diff)
-        r.expired = false
+        const cd = this._formatCountdown(diff)
+        if (cd !== r.countdown) {
+          updates['reminders[' + i + '].countdown'] = cd
+          updates['reminders[' + i + '].expired'] = false
+        }
       }
     })
 
     if (needReload) {
       this.loadReminders()
-    } else {
-      this.setData({ reminders })
+    } else if (Object.keys(updates).length > 0) {
+      this.setData(updates)
     }
   },
 

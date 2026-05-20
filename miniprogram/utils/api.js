@@ -1,12 +1,13 @@
 // API 基础配置
 const BASE_URL = 'https://lovelin.com.cn/api/remind'
 
-// 缓存 openid
+// 缓存 token 和 openid
+let cachedToken = ''
 let cachedOpenid = ''
 
-// 获取 openid（wx.login 换取）
+// 获取 token 和 openid（wx.login 换取）
 const getOpenid = () => {
-  if (cachedOpenid) return Promise.resolve(cachedOpenid)
+  if (cachedToken) return Promise.resolve(cachedOpenid)
   return new Promise((resolve, reject) => {
     wx.login({
       success(res) {
@@ -16,12 +17,14 @@ const getOpenid = () => {
           method: 'GET',
           timeout: 10000,
           success(resp) {
-            if (resp.statusCode === 200 && resp.data.openid) {
+            if (resp.statusCode === 200 && resp.data.token) {
+              cachedToken = resp.data.token
               cachedOpenid = resp.data.openid
+              wx.setStorageSync('token', cachedToken)
               wx.setStorageSync('openid', cachedOpenid)
               resolve(cachedOpenid)
             } else {
-              reject(new Error('获取 openid 失败'))
+              reject(new Error('登录失败'))
             }
           },
           fail: reject
@@ -33,6 +36,7 @@ const getOpenid = () => {
 }
 
 // 启动时从缓存恢复
+cachedToken = wx.getStorageSync('token') || ''
 cachedOpenid = wx.getStorageSync('openid') || ''
 
 const request = (options) => {
@@ -48,6 +52,32 @@ const request = (options) => {
       success(res) {
         if (res.statusCode === 200) {
           resolve(res.data)
+        } else if (res.statusCode === 401) {
+          // token 过期，清除缓存重新登录
+          cachedToken = ''
+          cachedOpenid = ''
+          wx.removeStorageSync('token')
+          wx.removeStorageSync('openid')
+          getOpenid().then(() => {
+            // 重试一次
+            options.data = options.data || {}
+            options.data.token = cachedToken
+            wx.request({
+              url: BASE_URL + options.url,
+              method: options.method || 'GET',
+              data: options.data,
+              timeout: 10000,
+              header: { 'Content-Type': 'application/json' },
+              success(retryRes) {
+                if (retryRes.statusCode === 200) {
+                  resolve(retryRes.data)
+                } else {
+                  reject(retryRes.data)
+                }
+              },
+              fail: reject
+            })
+          }).catch(reject)
         } else {
           reject(res.data)
         }
@@ -59,46 +89,46 @@ const request = (options) => {
   })
 }
 
-// 获取提醒列表（POST body 传 openid，避免 URL 泄露）
+// 获取提醒列表
 const getReminders = () => {
-  return getOpenid().then((openid) => {
+  return getOpenid().then(() => {
     return request({
       url: '/list',
       method: 'POST',
-      data: { openid }
+      data: { token: cachedToken }
     })
   })
 }
 
 // 创建提醒
 const createReminder = (data) => {
-  return getOpenid().then((openid) => {
+  return getOpenid().then(() => {
     return request({
       url: '/create',
       method: 'POST',
-      data: Object.assign({}, data, { openid: openid })
+      data: Object.assign({}, data, { token: cachedToken })
     })
   })
 }
 
 // 标记完成
 const completeReminder = (id) => {
-  return getOpenid().then((openid) => {
+  return getOpenid().then(() => {
     return request({
       url: '/complete',
       method: 'POST',
-      data: { id, openid }
+      data: { id, token: cachedToken }
     })
   })
 }
 
 // 删除提醒
 const deleteReminder = (id) => {
-  return getOpenid().then((openid) => {
+  return getOpenid().then(() => {
     return request({
       url: '/delete',
       method: 'POST',
-      data: { id, openid }
+      data: { id, token: cachedToken }
     })
   })
 }

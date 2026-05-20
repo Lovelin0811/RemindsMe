@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -26,7 +27,14 @@ public class WxSubscribeService {
     @Value("${wx.secret:}")
     private String secret;
 
-    private final RestTemplate restTemplate = new RestTemplate();
+    private final RestTemplate restTemplate;
+
+    public WxSubscribeService() {
+        SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
+        factory.setConnectTimeout(5000);   // 连接超时 5 秒
+        factory.setReadTimeout(10000);     // 读取超时 10 秒
+        this.restTemplate = new RestTemplate(factory);
+    }
 
     /**
      * 获取微信 access_token（带缓存）

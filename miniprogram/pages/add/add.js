@@ -319,16 +319,15 @@ Page({
         icon: 'success',
         duration: 2000
       })
+      setTimeout(() => {
+        wx.switchTab({ url: '/pages/index/index' })
+      }, 1500)
     }).catch(() => {
       wx.showToast({
-        title: data.subscribed ? '提醒已创建，到时推送通知' : '提醒已创建',
-        icon: 'success',
+        title: '创建失败，请重试',
+        icon: 'none',
         duration: 2000
       })
     })
-
-    setTimeout(() => {
-      wx.switchTab({ url: '/pages/index/index' })
-    }, 1500)
   }
 })

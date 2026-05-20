@@ -63,30 +63,39 @@ public class ReminderScheduler {
         String note = (String) reminder.get("note");
 
         wxSubscribeService.sendReminderPush(openid, templateId, title, note);
-        log.info("推送提醒成功: openid={}, title={}", openid, title);
+        log.info("推送提醒成功: openid={}, title={}", mask(openid), title);
+    }
+
+    /** 脱敏 openid，仅保留前后各3位 */
+    private String mask(String openid) {
+        if (openid == null || openid.length() <= 6) return "***";
+        return openid.substring(0, 3) + "***" + openid.substring(openid.length() - 3);
     }
 
     private long calculateNextOccurrence(String repeatRule, long currentTime, String repeatTimeStr, int repeatWeekday) {
         if (repeatTimeStr == null || repeatTimeStr.isEmpty()) return currentTime + 86400000;
 
-        String[] parts = repeatTimeStr.split(":");
-        int hour = Integer.parseInt(parts[0]);
-        int minute = Integer.parseInt(parts[1]);
+        try {
+            String[] parts = repeatTimeStr.split(":");
+            if (parts.length < 2) return currentTime + 86400000;
+            int hour = Integer.parseInt(parts[0].trim());
+            int minute = Integer.parseInt(parts[1].trim());
+            if (hour < 0 || hour > 23 || minute < 0 || minute > 59) return currentTime + 86400000;
 
-        java.util.Calendar cal = java.util.Calendar.getInstance();
-        cal.setTimeInMillis(currentTime);
-        cal.set(java.util.Calendar.HOUR_OF_DAY, hour);
-        cal.set(java.util.Calendar.MINUTE, minute);
-        cal.set(java.util.Calendar.SECOND, 0);
-        cal.set(java.util.Calendar.MILLISECOND, 0);
+            java.util.Calendar cal = java.util.Calendar.getInstance();
+            cal.setTimeInMillis(currentTime);
+            cal.set(java.util.Calendar.HOUR_OF_DAY, hour);
+            cal.set(java.util.Calendar.MINUTE, minute);
+            cal.set(java.util.Calendar.SECOND, 0);
+            cal.set(java.util.Calendar.MILLISECOND, 0);
 
-        return switch (repeatRule) {
-            case "daily" -> {
-                if (cal.getTimeInMillis() <= currentTime) cal.add(java.util.Calendar.DAY_OF_MONTH, 1);
-                yield cal.getTimeInMillis();
-            }
-            case "weekday" -> {
-                while (cal.get(java.util.Calendar.DAY_OF_WEEK) == java.util.Calendar.SUNDAY
+            return switch (repeatRule) {
+                case "daily" -> {
+                    if (cal.getTimeInMillis() <= currentTime) cal.add(java.util.Calendar.DAY_OF_MONTH, 1);
+                    yield cal.getTimeInMillis();
+                }
+                case "weekday" -> {
+                    while (cal.get(java.util.Calendar.DAY_OF_WEEK) == java.util.Calendar.SUNDAY
                         || cal.get(java.util.Calendar.DAY_OF_WEEK) == java.util.Calendar.SATURDAY
                         || cal.getTimeInMillis() <= currentTime) {
                     cal.add(java.util.Calendar.DAY_OF_MONTH, 1);
@@ -113,7 +122,11 @@ public class ReminderScheduler {
                 yield cal.getTimeInMillis();
             }
             default -> currentTime + 86400000;
-        };
+            };
+        } catch (Exception e) {
+            log.warn("时间解析异常，使用默认兜底: rule={}, time={}, error={}", repeatRule, repeatTimeStr, e.getMessage());
+            return currentTime + 86400000;
+        }
     }
 
     private long toLong(Object val) {

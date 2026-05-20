@@ -1,8 +1,8 @@
 package com.lovelin.remind.controller;
 
 import com.lovelin.remind.service.ReminderService;
+import com.lovelin.remind.service.SessionService;
 import com.lovelin.remind.service.WxSubscribeService;
-import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,38 +17,46 @@ public class RemindController {
 
     private final ReminderService reminderService;
     private final WxSubscribeService wxSubscribeService;
+    private final SessionService sessionService;
 
-    public RemindController(ReminderService reminderService, WxSubscribeService wxSubscribeService) {
+    public RemindController(ReminderService reminderService, WxSubscribeService wxSubscribeService, SessionService sessionService) {
         this.reminderService = reminderService;
         this.wxSubscribeService = wxSubscribeService;
+        this.sessionService = sessionService;
     }
 
     /**
-     * 接收小程序端的订阅消息授权记录
+     * 微信 code 换 openid + token（登录接口）
      */
-    @PostMapping("/subscribe")
-    public ResponseEntity<Map<String, Object>> subscribe(@RequestBody Map<String, Object> body, HttpServletRequest request) {
-        String openid = (String) body.get("openid");
-        reminderService.saveSubscription(body, openid);
+    @GetMapping("/openid")
+    public ResponseEntity<Map<String, Object>> openid(@RequestParam String code) {
+        String openid = wxSubscribeService.code2Session(code);
+        String token = sessionService.createSession(openid);
+        return ResponseEntity.ok(Map.of("success", true, "openid", openid, "token", token));
+    }
+
+    /**
+     * 创建提醒
+     */
+    @PostMapping("/create")
+    public ResponseEntity<Map<String, Object>> create(@RequestBody Map<String, Object> body) {
+        String openid = requireOpenid(body);
+        if (openid == null) {
+            return ResponseEntity.status(401).body(Map.of("success", false, "message", "未登录或登录已过期"));
+        }
+        reminderService.createReminder(body, openid);
         return ResponseEntity.ok(Map.of("success", true));
     }
 
     /**
-     * 创建提醒（同步到后端）
-     */
-    @PostMapping("/create")
-    public ResponseEntity<Map<String, Object>> create(@RequestBody Map<String, Object> body, HttpServletRequest request) {
-        String openid = (String) body.get("openid");
-        reminderService.createReminder(body, openid);
-        return ResponseEntity.ok(Map.of("success", true, "id", body.getOrDefault("id", "")));
-    }
-
-    /**
-     * 获取提醒列表（POST body 传 openid，避免 URL 泄露）
+     * 获取提醒列表
      */
     @PostMapping("/list")
     public ResponseEntity<Map<String, Object>> list(@RequestBody Map<String, Object> body) {
-        String openid = (String) body.get("openid");
+        String openid = requireOpenid(body);
+        if (openid == null) {
+            return ResponseEntity.status(401).body(Map.of("success", false, "message", "未登录或登录已过期"));
+        }
         var reminders = reminderService.listReminders(openid);
         return ResponseEntity.ok(Map.of("success", true, "reminders", reminders));
     }
@@ -58,9 +66,12 @@ public class RemindController {
      */
     @PostMapping("/complete")
     public ResponseEntity<Map<String, Object>> complete(@RequestBody Map<String, Object> body) {
-        String openid = toString(body.get("openid"));
+        String openid = requireOpenid(body);
+        if (openid == null) {
+            return ResponseEntity.status(401).body(Map.of("success", false, "message", "未登录或登录已过期"));
+        }
         String id = toString(body.get("id"));
-        if (openid == null || openid.isEmpty() || id == null || id.isEmpty()) {
+        if (id == null || id.isEmpty()) {
             return ResponseEntity.badRequest().body(Map.of("success", false, "message", "参数不完整"));
         }
         try {
@@ -76,9 +87,12 @@ public class RemindController {
      */
     @PostMapping("/delete")
     public ResponseEntity<Map<String, Object>> delete(@RequestBody Map<String, Object> body) {
-        String openid = toString(body.get("openid"));
+        String openid = requireOpenid(body);
+        if (openid == null) {
+            return ResponseEntity.status(401).body(Map.of("success", false, "message", "未登录或登录已过期"));
+        }
         String id = toString(body.get("id"));
-        if (openid == null || openid.isEmpty() || id == null || id.isEmpty()) {
+        if (id == null || id.isEmpty()) {
             return ResponseEntity.badRequest().body(Map.of("success", false, "message", "参数不完整"));
         }
         try {
@@ -90,29 +104,12 @@ public class RemindController {
     }
 
     /**
-     * 微信 code 换 openid（RemindsMe 用，无需登录态）
+     * 从请求体中通过 token 获取 openid
      */
-    @GetMapping("/openid")
-    public ResponseEntity<Map<String, Object>> openid(@RequestParam String code) {
-        String openid = wxSubscribeService.code2Session(code);
-        return ResponseEntity.ok(Map.of("success", true, "openid", openid));
-    }
-
-    /**
-     * 手动测试推送
-     */
-    @PostMapping("/test-push")
-    public ResponseEntity<Map<String, Object>> testPush(
-            @RequestParam String openid,
-            @RequestParam String templateId,
-            @RequestParam String reminderContent) {
-
-        try {
-            wxSubscribeService.sendReminderPush(openid, templateId, reminderContent, "");
-            return ResponseEntity.ok(Map.of("success", true, "message", "推送成功"));
-        } catch (Exception e) {
-            return ResponseEntity.ok(Map.of("success", false, "message", e.getMessage()));
-        }
+    private String requireOpenid(Map<String, Object> body) {
+        String token = toString(body.get("token"));
+        if (token == null || token.isEmpty()) return null;
+        return sessionService.getOpenid(token);
     }
 
     private String toString(Object val) {

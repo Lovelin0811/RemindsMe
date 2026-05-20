@@ -73,8 +73,8 @@ public class ReminderService {
      */
     public void completeReminder(String reminderId, String openid) {
         int rows = jdbcTemplate.update(
-            "UPDATE reminder_subscriptions SET status = 'completed' WHERE reminder_id = ? AND openid = ?",
-            reminderId, openid
+            "UPDATE reminder_subscriptions SET status = 'completed' WHERE id = ? AND openid = ?",
+            Long.parseLong(reminderId), openid
         );
         if (rows == 0) {
             throw new RuntimeException("提醒不存在或无权操作");
@@ -86,8 +86,8 @@ public class ReminderService {
      */
     public void deleteReminder(String reminderId, String openid) {
         int rows = jdbcTemplate.update(
-            "DELETE FROM reminder_subscriptions WHERE reminder_id = ? AND openid = ?",
-            reminderId, openid
+            "DELETE FROM reminder_subscriptions WHERE id = ? AND openid = ?",
+            Long.parseLong(reminderId), openid
         );
         if (rows == 0) {
             throw new RuntimeException("提醒不存在或无权操作");

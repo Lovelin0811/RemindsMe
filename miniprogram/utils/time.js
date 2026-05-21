@@ -61,6 +61,10 @@ function fmtDateTime(d) {
   return fmtDate(d) + ' ' + fmtTime(d)
 }
 
+function fmtDateTimeSec(d) {
+  return fmtDate(d) + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds())
+}
+
 /**
  * 构建倒计时文本
  * @param {number} diff - 目标时间 - 当前时间（ms）
@@ -68,7 +72,7 @@ function fmtDateTime(d) {
  * @returns {string}
  */
 function buildDiffText(diff, target) {
-  var dt = fmtDateTime(target)
+  var dt = fmtDateTimeSec(target)
 
   if (diff < 0) return dt + '（已过时）'
   if (diff < 60000) return '不到 1 分钟后（' + dt + '）'
@@ -109,6 +113,7 @@ module.exports = {
   fmtDate: fmtDate,
   fmtTime: fmtTime,
   fmtDateTime: fmtDateTime,
+  fmtDateTimeSec: fmtDateTimeSec,
   buildDiffText: buildDiffText,
   formatCountdown: formatCountdown
 }

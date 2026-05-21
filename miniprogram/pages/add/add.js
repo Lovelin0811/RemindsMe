@@ -301,6 +301,7 @@ Page({
   _doSave(data) {
     // 提交到后端 API
     api.createReminder({
+      templateId: SUBSCRIBE_TEMPLATE_ID,
       title: data.title,
       note: data.note,
       type: data.type,

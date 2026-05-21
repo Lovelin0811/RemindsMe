@@ -30,6 +30,7 @@ public class DatabaseInitializer implements CommandLineRunner {
               repeat_rule VARCHAR(32) NOT NULL DEFAULT '',
               repeat_time VARCHAR(16) NOT NULL DEFAULT '',
               repeat_weekday INT NOT NULL DEFAULT 0,
+              repeat_month_day INT NOT NULL DEFAULT 1,
               status VARCHAR(16) NOT NULL DEFAULT 'pending',
               pushed_at BIGINT NULL,
               created_at BIGINT NOT NULL,
@@ -37,5 +38,16 @@ public class DatabaseInitializer implements CommandLineRunner {
               INDEX idx_reminder_sub_openid(openid)
             )
             """);
+
+        // 兼容已有表：自动添加缺失的列
+        addColumnIfMissing(jdbcTemplate, "reminder_subscriptions", "repeat_month_day", "INT NOT NULL DEFAULT 1");
+    }
+
+    private void addColumnIfMissing(JdbcTemplate jdbcTemplate, String table, String column, String definition) {
+        try {
+            jdbcTemplate.execute("ALTER TABLE " + table + " ADD COLUMN " + column + " " + definition);
+        } catch (Exception e) {
+            // 列已存在时忽略
+        }
     }
 }

@@ -45,7 +45,8 @@ public class ReminderScheduler {
                         repeatRule,
                         now,
                         (String) reminder.get("repeat_time"),
-                        toInt(reminder.get("repeat_weekday"))
+                        toInt(reminder.get("repeat_weekday")),
+                        toInt(reminder.get("repeat_month_day"))
                     );
                     reminderService.updateNextReminderTime(toLong(reminder.get("id")), nextTime);
                 }
@@ -72,7 +73,7 @@ public class ReminderScheduler {
         return openid.substring(0, 3) + "***" + openid.substring(openid.length() - 3);
     }
 
-    private long calculateNextOccurrence(String repeatRule, long currentTime, String repeatTimeStr, int repeatWeekday) {
+    private long calculateNextOccurrence(String repeatRule, long currentTime, String repeatTimeStr, int repeatWeekday, int repeatMonthDay) {
         if (repeatTimeStr == null || repeatTimeStr.isEmpty()) return currentTime + 86400000;
 
         try {
@@ -118,7 +119,16 @@ public class ReminderScheduler {
                 yield cal.getTimeInMillis();
             }
             case "monthly" -> {
-                if (cal.getTimeInMillis() <= currentTime) cal.add(java.util.Calendar.MONTH, 1);
+                int day = repeatMonthDay > 0 ? repeatMonthDay : 1;
+                int maxDay = cal.getActualMaximum(java.util.Calendar.DAY_OF_MONTH);
+                if (day > maxDay) day = maxDay;
+                cal.set(java.util.Calendar.DAY_OF_MONTH, day);
+                if (cal.getTimeInMillis() <= currentTime) {
+                    cal.add(java.util.Calendar.MONTH, 1);
+                    maxDay = cal.getActualMaximum(java.util.Calendar.DAY_OF_MONTH);
+                    if (day > maxDay) cal.set(java.util.Calendar.DAY_OF_MONTH, maxDay);
+                    else cal.set(java.util.Calendar.DAY_OF_MONTH, day);
+                }
                 yield cal.getTimeInMillis();
             }
             default -> currentTime + 86400000;

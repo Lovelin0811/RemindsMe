@@ -11,9 +11,10 @@ const WEEKDAYS = ['周日', '周一', '周二', '周三', '周四', '周五', '�
  * @param {string} setTime - HH:mm 格式
  * @param {number} now - 当前时间戳（ms）
  * @param {number} [repeatWeekday] - 每周几（0=周日），weekly 时必传
+ * @param {number} [repeatMonthDay] - 每月几号（1-31），monthly 时必传
  * @returns {Date}
  */
-function getNextOccurrence(rule, setTime, now, repeatWeekday) {
+function getNextOccurrence(rule, setTime, now, repeatWeekday, repeatMonthDay) {
   var parts = setTime.split(':').map(Number)
   var h = parts[0]
   var m = parts[1]
@@ -36,9 +37,19 @@ function getNextOccurrence(rule, setTime, now, repeatWeekday) {
       target.setDate(target.getDate() + diff)
       return target
     }
-    case 'monthly':
-      if (target <= now) target.setMonth(target.getMonth() + 1)
+    case 'monthly': {
+      var md = parseInt(repeatMonthDay || '1')
+      var maxDay = new Date(target.getFullYear(), target.getMonth() + 1, 0).getDate()
+      if (md > maxDay) md = maxDay
+      target.setDate(md)
+      if (target <= now) {
+        target.setMonth(target.getMonth() + 1)
+        maxDay = new Date(target.getFullYear(), target.getMonth() + 1, 0).getDate()
+        if (md > maxDay) target.setDate(maxDay)
+        else target.setDate(md)
+      }
       return target
+    }
     default:
       if (target <= now) target.setDate(target.getDate() + 1)
       return target

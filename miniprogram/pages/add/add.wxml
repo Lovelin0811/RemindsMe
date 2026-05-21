@@ -86,6 +86,19 @@
       </view>
     </view>
 
+    <!-- 每月选几号 -->
+    <view class="glass-card" wx:if="{{repeatRule === 'monthly'}}" style="margin-top:20rpx">
+      <picker mode="selector" range="{{monthDayOptions}}" value="{{repeatMonthDay - 1}}" bindchange="onMonthDayChange">
+        <view class="field-row">
+          <text class="field-label">每月几号</text>
+          <view class="field-value-wrap">
+            <text class="field-value">{{repeatMonthDay}}日</text>
+            <text class="field-arrow">></text>
+          </view>
+        </view>
+      </picker>
+    </view>
+
     <view class="glass-card" style="margin-top:32rpx">
       <picker mode="time" value="{{repeatTime}}" bindchange="onRepeatTimeChange">
         <view class="field-row">

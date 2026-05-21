@@ -29,8 +29,8 @@ public class ReminderService {
         jdbcTemplate.update("""
             INSERT INTO reminder_subscriptions
                 (openid, reminder_id, template_id, title, note, reminder_time, type, type_label,
-                 interval_label, repeat_rule, repeat_time, repeat_weekday, status, created_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?)
+                 interval_label, repeat_rule, repeat_time, repeat_weekday, repeat_month_day, status, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?)
             """,
             openid != null ? openid : "",
             body.getOrDefault("reminderId", ""),
@@ -44,6 +44,7 @@ public class ReminderService {
             body.getOrDefault("repeatRule", ""),
             body.getOrDefault("repeatTime", ""),
             toInt(body.get("repeatWeekday")),
+            toInt(body.get("repeatMonthDay")),
             now
         );
     }

@@ -57,6 +57,10 @@ Page({
     repeatRule: 'daily',
     repeatTime: '',
     repeatWeekday: 1,   // 0-6, 默认周一
+    repeatMonthDay: 1,   // 1-31, 默认1号
+
+    // 每月日期选项 1-31
+    monthDayOptions: Array.from({length: 31}, function(_, i) { return (i + 1) + '日' }),
 
     // 预览
     reminderTimeDisplay: '',
@@ -94,6 +98,7 @@ Page({
       repeatRule: 'daily',
       repeatTime: timeStr,
       repeatWeekday: now.getDay() === 0 ? 1 : now.getDay(),
+      repeatMonthDay: now.getDate(),
       reminderTimeDisplay: '',
       reminderTime: 0
     })
@@ -185,6 +190,11 @@ Page({
     this.updatePreview()
   },
 
+  onMonthDayChange(e) {
+    this.setData({ repeatMonthDay: parseInt(e.detail.value) + 1 })
+    this.updatePreview()
+  },
+
   updatePreview() {
     const { type, delayIndex, customDelayValue, customDelayUnit, scheduleDate, scheduleTime, repeatRule, repeatTime, repeatWeekday } = this.data
     const now = new Date()
@@ -210,10 +220,12 @@ Page({
       display = timeUtil.buildDiffText(reminderTime.getTime() - now.getTime(), reminderTime)
     } else if (type === 'repeat') {
       const ruleLabel = REPEAT_OPTIONS.find(r => r.value === repeatRule).label
-      reminderTime = timeUtil.getNextOccurrence(repeatRule, repeatTime, now.getTime(), repeatWeekday)
+      reminderTime = timeUtil.getNextOccurrence(repeatRule, repeatTime, now.getTime(), repeatWeekday, this.data.repeatMonthDay)
       let extra = ''
       if (repeatRule === 'weekly') {
         extra = '（每' + timeUtil.WEEKDAYS[repeatWeekday] + '）'
+      } else if (repeatRule === 'monthly') {
+        extra = '（每月' + this.data.repeatMonthDay + '日）'
       }
       display = ruleLabel + extra + ' ' + repeatTime + '，下次：' + timeUtil.fmtDateTime(reminderTime)
     }
@@ -225,7 +237,7 @@ Page({
   },
 
   saveReminder() {
-    const { title, note, type, delayIndex, customDelayValue, customDelayUnit, scheduleDate, scheduleTime, repeatRule, repeatTime, repeatWeekday, reminderTime, typeLabel } = this.data
+    const { title, note, type, delayIndex, customDelayValue, customDelayUnit, scheduleDate, scheduleTime, repeatRule, repeatTime, repeatWeekday, repeatMonthDay, reminderTime, typeLabel } = this.data
 
     if (!title.trim()) {
       wx.showToast({ title: '请输入提醒内容', icon: 'none' })
@@ -257,6 +269,8 @@ Page({
       const ruleLabel = REPEAT_OPTIONS.find(r => r.value === repeatRule).label
       if (repeatRule === 'weekly') {
         intervalLabel = '每' + timeUtil.WEEKDAYS[repeatWeekday] + ' ' + repeatTime
+      } else if (repeatRule === 'monthly') {
+        intervalLabel = '每月' + repeatMonthDay + '日 ' + repeatTime
       } else {
         intervalLabel = ruleLabel + ' ' + repeatTime
       }
@@ -275,6 +289,7 @@ Page({
         repeatRule: type === 'repeat' ? repeatRule : '',
         repeatTime: type === 'repeat' ? repeatTime : '',
         repeatWeekday: type === 'repeat' ? repeatWeekday : '',
+        repeatMonthDay: type === 'repeat' ? repeatMonthDay : '',
         reminderTime,
         date: timeUtil.fmtDate(targetDate),
         time: timeUtil.fmtTime(targetDate),

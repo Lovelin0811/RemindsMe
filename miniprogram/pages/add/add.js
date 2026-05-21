@@ -14,14 +14,11 @@ const timeUtil = require('../../utils/time')
 // 延时快捷选项
 const DELAY_OPTIONS = [
   { value: 1, unit: 'min', label: '1 分钟后' },
-  { value: 3, unit: 'min', label: '3 分钟后' },
   { value: 5, unit: 'min', label: '5 分钟后' },
   { value: 10, unit: 'min', label: '10 分钟后' },
   { value: 15, unit: 'min', label: '15 分钟后' },
   { value: 30, unit: 'min', label: '30 分钟后' },
   { value: 1, unit: 'hour', label: '1 小时后' },
-  { value: 2, unit: 'hour', label: '2 小时后' },
-  { value: 6, unit: 'hour', label: '6 小时后' },
   { value: 24, unit: 'hour', label: '1 天后' }
 ]
 

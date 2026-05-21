@@ -134,7 +134,7 @@ public class WxSubscribeService {
 
         // phrase2 = 状态
         JSONObject phrase2 = new JSONObject();
-        phrase2.put("value", "到期提醒");
+        phrase2.put("value", "时间差不多咯");
         data.put("phrase2", phrase2);
 
         // time3 = 提醒时间

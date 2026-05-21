@@ -204,10 +204,16 @@ Page({
         minutes = this._delayToMinutes(delayIndex)
       }
       reminderTime = new Date(now.getTime() + minutes * 60 * 1000)
-      display = timeUtil.buildDiffText(reminderTime.getTime() - now.getTime(), reminderTime)
+      const diff = reminderTime.getTime() - now.getTime()
+      display = timeUtil.formatCountdown(diff) + ' 后（' + timeUtil.fmtDateTime(reminderTime) + '）'
     } else if (type === 'schedule') {
       reminderTime = new Date(scheduleDate + 'T' + scheduleTime)
-      display = timeUtil.buildDiffText(reminderTime.getTime() - now.getTime(), reminderTime)
+      const diff = reminderTime.getTime() - now.getTime()
+      if (diff <= 0) {
+        display = timeUtil.fmtDateTime(reminderTime) + '（已过时）'
+      } else {
+        display = timeUtil.formatCountdown(diff) + ' 后（' + timeUtil.fmtDateTime(reminderTime) + '）'
+      }
     } else if (type === 'repeat') {
       const ruleLabel = REPEAT_OPTIONS.find(r => r.value === repeatRule).label
       reminderTime = timeUtil.getNextOccurrence(repeatRule, repeatTime, now.getTime(), repeatWeekday)

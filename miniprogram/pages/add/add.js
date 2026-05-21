@@ -116,7 +116,7 @@ Page({
   switchType(e) {
     const type = e.currentTarget.dataset.type
     const label = REMINDER_TYPES.find(t => t.value === type).label
-    this.setData({ type, typeLabel: label })
+    this.setData({ type, typeLabel: label, title: '' })
     this.updatePreview()
   },
 

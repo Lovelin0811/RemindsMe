@@ -6,7 +6,7 @@ const REMINDER_TYPES = [
 ]
 
 // 订阅消息模板ID
-const SUBSCRIBE_TEMPLATE_ID = 'C9lPRw7nKW4cgmaJTINBRXAEpRdhimwz9vGauR-yDWI'
+const SUBSCRIBE_TEMPLATE_ID = 'zS-VJDwTcChD3yCcy0MwU6h1Yzz-0seY_JkO-gyDN74'
 
 const api = require('../../utils/api')
 const timeUtil = require('../../utils/time')

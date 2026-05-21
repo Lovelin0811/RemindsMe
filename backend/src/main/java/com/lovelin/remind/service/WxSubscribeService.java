@@ -127,28 +127,26 @@ public class WxSubscribeService {
     public void sendReminderPush(String openid, String templateId, String title, String note) {
         JSONObject data = new JSONObject();
 
-        String nowStr = fmt.format(new Date());
+        // thing1 = 提醒标题
+        JSONObject thing1 = new JSONObject();
+        thing1.put("value", title != null && !title.isEmpty() ? title : "提醒");
+        data.put("thing1", thing1);
 
-        // time2 = 开始时间
-        JSONObject time2 = new JSONObject();
-        time2.put("value", nowStr);
-        data.put("time2", time2);
+        // phrase2 = 状态
+        JSONObject phrase2 = new JSONObject();
+        phrase2.put("value", "待提醒");
+        data.put("phrase2", phrase2);
 
-        // time3 = 到期时间
+        // time3 = 提醒时间
         JSONObject time3 = new JSONObject();
-        time3.put("value", nowStr);
+        time3.put("value", fmt.format(new Date()));
         data.put("time3", time3);
 
-        // phrase4 = 订单状态（模板预定义短语，默认"待提醒"）
-        JSONObject phrase4 = new JSONObject();
-        phrase4.put("value", "待提醒");
-        data.put("phrase4", phrase4);
-
-        // thing5 = 备注
-        JSONObject thing5 = new JSONObject();
-        String noteVal = (note != null && !note.isEmpty()) ? note : title;
-        thing5.put("value", noteVal.length() > 20 ? noteVal.substring(0, 20) : noteVal);
-        data.put("thing5", thing5);
+        // thing4 = 备注/提示
+        JSONObject thing4 = new JSONObject();
+        String noteVal = (note != null && !note.isEmpty()) ? note : "";
+        thing4.put("value", noteVal.length() > 20 ? noteVal.substring(0, 20) : noteVal);
+        data.put("thing4", thing4);
 
         sendSubscribeMessage(openid, templateId, "pages/index/index", data);
     }

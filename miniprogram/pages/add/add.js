@@ -65,6 +65,15 @@ Page({
 
   onLoad() {
     this._initForm()
+    // 每秒刷新预览倒计时
+    this._previewTimer = setInterval(() => this.updatePreview(), 1000)
+  },
+
+  onUnload() {
+    if (this._previewTimer) {
+      clearInterval(this._previewTimer)
+      this._previewTimer = null
+    }
   },
 
   _initForm() {

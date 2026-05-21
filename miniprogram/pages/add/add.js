@@ -237,14 +237,19 @@ Page({
   },
 
   saveReminder() {
+    if (this._submitting) return
+    this._submitting = true
+
     const { title, note, type, delayIndex, customDelayValue, customDelayUnit, scheduleDate, scheduleTime, repeatRule, repeatTime, repeatWeekday, repeatMonthDay, reminderTime, typeLabel } = this.data
 
     if (!title.trim()) {
+      this._submitting = false
       wx.showToast({ title: '请输入提醒内容', icon: 'none' })
       return
     }
 
     if (!reminderTime) {
+      this._submitting = false
       wx.showToast({ title: '请选择提醒时间', icon: 'none' })
       return
     }
@@ -297,6 +302,8 @@ Page({
       })
     }).catch(() => {
       wx.showToast({ title: '创建提醒失败', icon: 'none' })
+    }).finally(() => {
+      this._submitting = false
     })
   },
 

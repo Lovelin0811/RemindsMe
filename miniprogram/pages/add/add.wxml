@@ -36,9 +36,9 @@
     <view class="glass-card custom-delay-card" wx:if="{{delayIndex === -1}}" style="margin-top:20rpx">
       <view class="custom-delay-row">
         <input class="custom-delay-input" type="number" placeholder="数值" value="{{customDelayValue}}" bindinput="onCustomDelayValueInput" />
-        <picker mode="selector" range="{{['分钟', '小时']}}" value="{{customDelayUnit === 'hour' ? 1 : 0}}" bindchange="onCustomDelayUnitChange">
+        <picker mode="selector" range="{{['分钟', '小时', '天']}}" value="{{customDelayUnit === 'hour' ? 1 : (customDelayUnit === 'day' ? 2 : 0)}}" bindchange="onCustomDelayUnitChange">
           <view class="custom-delay-unit">
-            <text>{{customDelayUnit === 'hour' ? '小时' : '分钟'}}</text>
+            <text>{{customDelayUnit === 'hour' ? '小时' : (customDelayUnit === 'day' ? '天' : '分钟')}}</text>
             <text class="field-arrow">></text>
           </view>
         </picker>

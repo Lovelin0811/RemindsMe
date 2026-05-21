@@ -104,7 +104,7 @@ Page({
 
   _delayToMinutes(index) {
     const opt = DELAY_OPTIONS[index]
-    return opt.unit === 'hour' ? opt.value * 60 : opt.value
+    return opt.unit === 'hour' ? opt.value * 60 : (opt.unit === 'day' ? opt.value * 1440 : opt.value)
   },
 
   onTitleInput(e) { this.setData({ title: e.detail.value }) },
@@ -142,7 +142,8 @@ Page({
   },
 
   onCustomDelayUnitChange(e) {
-    this.setData({ customDelayUnit: e.detail.value })
+    const units = ['min', 'hour', 'day']
+    this.setData({ customDelayUnit: units[parseInt(e.detail.value)] })
     this.updatePreview()
   },
 
@@ -206,7 +207,7 @@ Page({
           this.setData({ reminderTimeDisplay: '请输入有效的延时时长', reminderTime: 0 })
           return
         }
-        minutes = customDelayUnit === 'hour' ? val * 60 : val
+        minutes = customDelayUnit === 'hour' ? val * 60 : (customDelayUnit === 'day' ? val * 1440 : val)
       } else {
         minutes = this._delayToMinutes(delayIndex)
       }
@@ -261,7 +262,8 @@ Page({
           wx.showToast({ title: '请输入有效的延时时长', icon: 'none' })
           return
         }
-        intervalLabel = val + (customDelayUnit === 'hour' ? ' 小时后' : ' 分钟后')
+        const unitLabel = customDelayUnit === 'hour' ? ' 小时后' : (customDelayUnit === 'day' ? ' 天后' : ' 分钟后')
+        intervalLabel = val + unitLabel
       } else {
         intervalLabel = DELAY_OPTIONS[delayIndex].label
       }

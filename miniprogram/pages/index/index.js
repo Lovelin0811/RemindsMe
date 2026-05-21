@@ -107,6 +107,8 @@ Page({
       const diff = r.reminderTime - now
       if (diff <= 0) {
         if (!r.expired) {
+          updates['reminders[' + i + '].countdown'] = ''
+          updates['reminders[' + i + '].expired'] = true
           needReload = true
         }
       } else {
@@ -118,10 +120,11 @@ Page({
       }
     })
 
+    if (Object.keys(updates).length > 0) {
+      this.setData(updates)
+    }
     if (needReload) {
       this.loadReminders()
-    } else if (Object.keys(updates).length > 0) {
-      this.setData(updates)
     }
   },
 

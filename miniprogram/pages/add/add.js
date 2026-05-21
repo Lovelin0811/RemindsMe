@@ -350,24 +350,9 @@ Page({
         icon: 'success',
         duration: 1500
       })
-      // 创建成功后引导用户多授权一个配额
       setTimeout(() => {
-        wx.showModal({
-          title: '多攒一个推送配额？',
-          content: '每次授权可多收一条推送，建议多授权几次',
-          confirmText: '授权',
-          cancelText: '跳过',
-          success: (modalRes) => {
-            if (modalRes.confirm) {
-              this._requestSubscribe().then(() => {})
-            }
-            wx.switchTab({ url: '/pages/index/index' })
-          },
-          fail: () => {
-            wx.switchTab({ url: '/pages/index/index' })
-          }
-        })
-      }, 500)
+        wx.switchTab({ url: '/pages/index/index' })
+      }, 1500)
     }).catch(() => {
       wx.showToast({
         title: '创建失败，请重试',

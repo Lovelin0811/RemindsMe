@@ -42,7 +42,7 @@ Page({
     delayOptions: DELAY_OPTIONS,
     delayIndex: 2,
     customDelayValue: '',
-    customDelayUnit: 'min',   // min | hour
+    customDelayUnit: 'min',   // min | hour | day
 
     // 指定时间
     scheduleDate: '',

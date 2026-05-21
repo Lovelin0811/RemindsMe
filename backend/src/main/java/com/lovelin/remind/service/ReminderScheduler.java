@@ -28,7 +28,7 @@ public class ReminderScheduler {
     /**
      * 每 10 秒扫描一次到期的提醒
      */
-    @Scheduled(fixedRate = 10000)
+    @Scheduled(fixedRate = 3000)
     public void checkAndPush() {
         long now = System.currentTimeMillis();
         List<Map<String, Object>> dueReminders = reminderService.findDueReminders(now);

@@ -96,10 +96,10 @@ function formatCountdown(diff) {
   var m = Math.floor((diff % 3600000) / 60000)
   var s = Math.floor((diff % 60000) / 1000)
 
-  if (d > 0) return d + '天 ' + h + '小时 ' + m + '分 ' + s + '秒'
-  if (h > 0) return h + '小时 ' + m + '分 ' + s + '秒'
-  if (m > 0) return m + '分 ' + s + '秒'
-  return s + '秒'
+  var text = ''
+  if (d > 0) text += d + '天 '
+  text += h + '小时 ' + m + '分 ' + s + '秒'
+  return text
 }
 
 module.exports = {
